@@ -78,6 +78,7 @@ applied. That is the workflow a security engineer runs in practice.
 Configure AWS CLI with appropriate permissions, then:
 
 pip install boto3 markdown
+
 python3 compliance_scanner.py
 
 Reports are saved to the reports/ folder. The HTML report includes 
