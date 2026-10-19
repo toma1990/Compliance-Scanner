@@ -4,30 +4,51 @@ A Python tool that automatically audits an AWS account against CIS
 AWS Foundations Benchmark controls, generates a compliance score, 
 and uses AI to provide prioritised remediation guidance.
 
-## What it does
+## Benchmark scope
 
-Runs automated checks across nine CIS benchmark controls covering:
+This scanner implements a selected subset of CIS AWS Foundations 
+Benchmark controls. It does not claim full benchmark compliance.
+A 100% score means all nine implemented controls passed - not that 
+the account meets the complete CIS standard.
 
-### IAM Controls
-- CIS 1.5 - Root account MFA enabled
-- CIS 1.8 - Password minimum length 14 or more
-- CIS 1.9 - Password reuse prevention 24 or more
-- CIS 1.10 - MFA enabled for all console users
-- CIS 1.11 - Password expiry 90 days or less
+Controls implemented:
 
-### Logging Controls
-- CIS 3.1 - CloudTrail multi-region trail enabled
-- CIS 3.2 - CloudTrail log file validation enabled
+| Control ID | Title | Pass condition |
+|------------|-------|----------------|
+| CIS-1.5 | Root account MFA | MFA device assigned to root |
+| CIS-1.8 | Password minimum length | Policy requires 14+ characters |
+| CIS-1.9 | Password reuse prevention | Policy prevents reuse of 24+ passwords |
+| CIS-1.10 | Console user MFA | All users with console access have MFA |
+| CIS-1.11 | Password expiry | Policy sets expiry at 90 days or less |
+| CIS-3.1 | CloudTrail multi-region | At least one multi-region trail exists |
+| CIS-3.2 | CloudTrail log validation | Log file validation enabled on trail |
+| CIS-2.1.5 | S3 public access block | All four account-level block settings enabled |
+| CIS-4.15 | GuardDuty enabled | Detector exists and status is ENABLED |
 
-### Storage Controls
-- CIS 2.1.5 - S3 account level public access block enabled
+## Required permissions
 
-### Detection Controls
-- CIS 4.15 - GuardDuty enabled and active
+The scanner requires read-only access. Minimum IAM permissions:
 
-Generates a compliance score, dark-themed HTML report, and uses 
-AWS Bedrock to provide step-by-step remediation guidance for 
-every failed control.
+- iam:GetAccountPasswordPolicy
+- iam:GetAccountSummary
+- iam:ListUsers
+- iam:GetLoginProfile
+- iam:ListMFADevices
+- cloudtrail:DescribeTrails
+- s3:GetAccountPublicAccessBlock
+- guardduty:ListDetectors
+- guardduty:GetDetector
+
+## Error handling and scoring
+
+The compliance score is calculated as passed checks divided by 
+total checks. If a check returns an ERROR status due to missing 
+permissions or an API failure, it is counted in the denominator 
+but not as a pass. This means an error can lower the score without 
+indicating a genuine misconfiguration.
+
+Always review ERROR results separately - they indicate the scanner 
+could not assess that control, not that the control passed or failed.
 
 ## Why I built this
 
